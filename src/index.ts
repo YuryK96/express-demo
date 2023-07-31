@@ -124,6 +124,110 @@ app.get('/addresses/:id', (req: Request, res: Response) => {
     res.json(chosenAdress);
 });
 
+// ACTIVITIES =====>
+
+const BASE_URL_ACTIVITIES = '/api/v1/Activities'
+
+let activities = [{
+    id: 0,
+    title: 'Jumping',
+    dueDate: new Date(),
+    completed: true
+},
+    {
+        id: 1,
+        title: 'Jogging',
+        dueDate: new Date(),
+        completed: true
+    },
+    {
+        id: 2,
+        title: 'Walking',
+        dueDate: new Date(),
+        completed: false
+    }]
+
+app.get(BASE_URL_ACTIVITIES, (req: Request, res: Response) => {
+    res.json(activities)
+})
+
+app.post(BASE_URL_ACTIVITIES, (req: Request, res: Response) => {
+    // fetch('http://localhost:3000/api/v1/Activities', {method: 'POST', body: JSON.stringify({title: 'skiing', completed: false }), headers: {"content-type" : "application/json"} }).then((res)=> res.json()).then( (res)=> console.log(res) )
+    if (!req.body.title) {
+        res.sendStatus(statusCode.NOT_FOUND_404)
+        return
+    }
+
+    const newActivity = {
+        id: +new Date(),
+        title: req.body.title,
+        dueDate: new Date(),
+        completed: req.body.completed || false
+    }
+
+    activities.push(newActivity);
+
+    res
+        .status(statusCode.CREATED_201)
+        .json(newActivity)
+
+})
+
+app.get(`${BASE_URL_ACTIVITIES}/:id`, (req: Request, res: Response) => {
+
+    const foundedActivity = activities.find((activity) => activity.id === +req.params.id)
+
+    if (!foundedActivity) {
+        res.sendStatus(statusCode.NOT_FOUND_404)
+        return
+    }
+
+    res.json(foundedActivity)
+
+})
+
+app.put(`${BASE_URL_ACTIVITIES}/:id`, (req: Request, res: Response) => {
+    // fetch('http://localhost:3000/api/v1/Activities/1', {method: 'PUT', body: JSON.stringify({ }), headers: {"content-type" : "application/json"} }).then((res)=> res.json()).then( (res)=> console.log(res) )
+
+    let foundedActivity = activities.find((activity) => activity.id === +req.params.id)
+
+    if (!foundedActivity) {
+        res.sendStatus(statusCode.NOT_FOUND_404)
+        return
+    }
+    foundedActivity = {
+        ...foundedActivity,
+        title: req.body.title || foundedActivity.title,
+        completed: req.body.completed || foundedActivity.completed
+    }
+
+    for (let i = 0; activities.length > i; i++) {
+        if (activities[i].id === foundedActivity.id) {
+            activities[i] = foundedActivity;
+            break
+        }
+    }
+
+    res
+        .status(statusCode.CREATED_201)
+        .json(foundedActivity)
+
+})
+
+app.delete(`${BASE_URL_ACTIVITIES}/:id`, (req: Request, res: Response) => {
+    // fetch('http://localhost:3000/api/v1/Activities/1', {method: 'DELETE'}).then((res)=> res.json()).then( (res)=> console.log(res) )
+    const newActivities = activities.filter((activity) => activity.id !== +req.params.id)
+
+    if (activities.length === newActivities.length) {
+        res.sendStatus(statusCode.NOT_FOUND_404)
+        return
+    }
+    activities = newActivities
+    res.sendStatus(statusCode.NO_CONTENT_204)
+})
+
+//  <=======  ACTIVITIES
+
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
