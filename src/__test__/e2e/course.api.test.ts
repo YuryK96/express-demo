@@ -43,6 +43,7 @@ describe('api product tests', () => {
             name: 'newProduct',
             id: expect.any(Number),
         })
+
         const products: AxiosResponse<ProductsViewModel[]> = await axios.get(`${BASE_URL}products/`);
         expect({products: products.data, status: products.status}).toStrictEqual({
             products: [newProduct],
@@ -75,7 +76,7 @@ describe('api product tests', () => {
 
     })
 
-    it("should create new product and return 201", async () => {
+    it("should create new product2 and return 201", async () => {
         const data: CreateProductsModel = {name: 'newProduct2'};
         const newProduct2: ProductsViewModel = await axios.post(`${BASE_URL}products`, data).then((res) => res.data)
         expect({name: newProduct2.name, id: newProduct2.id}).toEqual({

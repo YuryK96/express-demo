@@ -2,6 +2,7 @@ import {AddressesViewModel} from "../models/adresses/addressesViewModel";
 import express, {Request, Response} from "express";
 import {UriParamsAddressesModel} from "../models/adresses/uriParamsAddressesModel";
 import {statusCode} from "../statuses/statuses";
+import {addressesRepository} from "../repositories/addresses-repository";
 
 
 export const getAddressesViewModel = (address: AddressesViewModel) => {
@@ -9,20 +10,21 @@ export const getAddressesViewModel = (address: AddressesViewModel) => {
 
 }
 
-export const getAddressesRouter = (addresses: AddressesViewModel[])=> {
+export const getAddressesRouter = () => {
     const router = express.Router()
     router.get('', (req: Request, res: Response<AddressesViewModel[]>) => {
+        const addresses = addressesRepository.getAddresses()
         res.json(addresses.map(address => getAddressesViewModel(address)));
     });
     router.get('/:id', (req: Request<UriParamsAddressesModel>, res: Response<AddressesViewModel>) => {
-        const chosenAddress = addresses.find(item => item.id === +req.params.id);
+        const chosenAddress = addressesRepository.findAddress(+req.params.id)
         if (!chosenAddress) {
             res.sendStatus(statusCode.NOT_FOUND_404);
             return;
 
 
         }
-        res.json({name: chosenAddress.name, id: chosenAddress.id});
+        res.json(getAddressesViewModel(chosenAddress));
     });
 
     return router

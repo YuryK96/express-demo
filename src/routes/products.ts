@@ -6,7 +6,7 @@ import {UriParamsProductsModel} from "../models/products/uriParamsProductsModel"
 import {CreateProductsModel} from "../models/products/createProductsModel";
 import {UpdateProductsModel} from "../models/products/updateProductsModel";
 import {statusCode} from "../statuses/statuses";
-import {clearAllProducts, getProducts, replaceAllProducts} from "../db/db-products";
+import {productsRepository} from "../repositories/products-repository";
 
 
 export const getProductsViewModel = (product: ProductsViewModel) => {
@@ -18,32 +18,25 @@ export const getProductsRouter = () => {
     const router = express.Router()
 
     router.get('', (req: RequestWithParams<ProductsQueryModel>, res: Response<ProductsViewModel[] | ProductsViewModel>) => {
-
-        if (req.query.title) {
-            const foundProduct = getProducts().filter(product => product.name.indexOf(req.query.title) > -1);
-
-            res.json(foundProduct);
-            return;
-        }
-        res.json(getProducts().map(product => getProductsViewModel(product)));
+        const products = productsRepository.getProducts()
+        res.json(products.map(product => getProductsViewModel(product)));
     });
 
     router.get('/:id', (req: Request<UriParamsProductsModel>, res: Response<ProductsViewModel>) => {
-        const chosenProduct = getProducts().find(item => item.id === +req.params.id);
-        if (!chosenProduct) {
+        const foundedProduct = productsRepository.foundedProduct(+req.params.id)
+        if (!foundedProduct) {
             res.sendStatus(statusCode.NOT_FOUND_404);
             return;
         }
-        res.json({id: chosenProduct.id, name: chosenProduct.name});
+        res.json(getProductsViewModel(foundedProduct));
     });
 
     router.delete('/:id', (req: Request<UriParamsProductsModel>, res: Response) => {
-        const newProducts = getProducts().filter(item => item.id !== +req.params.id);
-        if (newProducts.length === getProducts().length) {
+        const newProducts = productsRepository.deleteByIdProduct(+req.params.id)
+        if (!newProducts) {
             res.sendStatus(statusCode.NOT_FOUND_404);
             return;
         }
-        replaceAllProducts(newProducts)
         res.sendStatus(statusCode.NO_CONTENT_204)
     });
 
@@ -54,13 +47,10 @@ export const getProductsRouter = () => {
             return;
         }
 
-        const newProduct = {
-            name: req.body.name,
-            id: +(new Date())
-        };
-        getProducts().push(newProduct);
+        const newProduct = productsRepository.addProduct(req.body.name)
+
         res.status(statusCode.CREATED_201)
-            .json({id: newProduct.id, name: newProduct.name});
+            .json(getProductsViewModel(newProduct));
     });
 
     router.put('/:id', (req: RequestWithParamsAndBody<UriParamsProductsModel, UpdateProductsModel>, res: Response<ProductsViewModel>) => {
@@ -70,19 +60,19 @@ export const getProductsRouter = () => {
             return;
         }
 
-        const changedProduct = getProducts().find(product => product.id === +req.params.id ? product.name = req.body.name : null)
+        const changedProduct = productsRepository.changeProduct(+req.params.id, req.body.name)
 
         if (!changedProduct) {
             res.sendStatus(statusCode.NOT_FOUND_404)
             return;
         }
         res.status(statusCode.CREATED_201)
-            .json({id: changedProduct.id, name: changedProduct.name});
+            .json(getProductsViewModel(changedProduct));
     });
 
 
     router.delete('/', (req: Request, res: Response) => {
-        clearAllProducts()
+        productsRepository.deleteAllProducts()
         res.sendStatus(statusCode.NO_CONTENT_204)
     })
     return router

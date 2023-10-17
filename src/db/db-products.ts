@@ -22,8 +22,5 @@ export let products: ProductsViewModel[] = [{
 export const  replaceAllProducts = (newProducts: ProductsViewModel[])=> {
     products = newProducts
 }
-export const  clearAllProducts = ()=> {
-    products = []
-}
 
 export const getProducts = ()=> products
