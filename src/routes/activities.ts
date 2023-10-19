@@ -1,5 +1,5 @@
 import {ActivityViewModel} from "../models/activities/activitieViewModel";
-import express, {Express, Request, Response} from "express";
+import express, {Express, NextFunction, Request, Response} from "express";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../types";
 import {CreateActivitiesModel} from "../models/activities/createActivitiesModel";
 import {ActivitiesQueryModel} from "../models/activities/queryActivitiesModel";
@@ -8,6 +8,8 @@ import {UpdateActivitiesModel} from "../models/activities/updateActivitiesModel"
 import {statusCode} from "../statuses/statuses";
 import {replaceAllActivities} from "../db/db-activities";
 import {activitiesRepository} from "../repositories/activities-repository";
+import {handleError} from "../middlewares/input-validation-middleware";
+import {body} from "express-validator";
 
 export const BASE_URL_ACTIVITIES = '/api/v1/Activities'
 export const getActivitiesViewModel = (activity: ActivityViewModel) => {
@@ -73,9 +75,15 @@ export const getActivitiesRouter = () => {
         res.json(getActivitiesViewModel(foundedActivity))
 
     })
+    6
+    const titleValidation = body('title').isLength({
+            min: 3,
+            max: 10
+        })
 
 
-    router.put(`/:id`, (req: RequestWithParamsAndBody<UriParamsActivitiesModel, UpdateActivitiesModel>, res: Response<ActivityViewModel>) => {
+
+    router.put(`/:id`, titleValidation, handleError, (req: RequestWithParamsAndBody<UriParamsActivitiesModel, UpdateActivitiesModel>, res: Response<ActivityViewModel>) => {
         // fetch('http://localhost:3000/api/v1/Activities/1', {method: 'PUT', body: JSON.stringify({ }), headers: {"content-type" : "application/json"} }).then((res)=> res.json()).then( (res)=> console.log(res) )
 
         const changedActivity = activitiesRepository.changeActivity(+req.params.id, req.body.title, req.body.completed)

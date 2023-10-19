@@ -28,7 +28,7 @@ export const productsRepository = {
     changeProduct(id: number, name: string): ProductsViewModel | undefined {
         let foundedProduct: ProductsViewModel | undefined = this.foundedProduct(id)
         if (foundedProduct) {
-            foundedProduct.name = name 
+            foundedProduct.name = name
             return foundedProduct
         }
         return undefined
